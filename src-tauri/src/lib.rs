@@ -75,7 +75,7 @@ fn place_top_center<R: Runtime>(window: &WebviewWindow<R>) {
     let origin = area.position.to_logical::<f64>(scale);
     let area_size = area.size.to_logical::<f64>(scale);
     let win = size.to_logical::<f64>(scale);
-    let _ = window.set_position(LogicalPosition::new(origin.x + (area_size.width - win.width) / 2.0, origin.y + 6.0));
+    let _ = window.set_position(LogicalPosition::new(origin.x + (area_size.width - win.width) / 2.0, origin.y));
 }
 
 /// Centers the popover horizontally under the tray icon, clamped to the screen.
@@ -89,7 +89,8 @@ fn place_under_tray<R: Runtime>(window: &WebviewWindow<R>, tray: &tauri::Rect) {
         .unwrap_or(LogicalSize::new(0.0, 0.0));
 
     let mut x = icon_pos.x + icon_size.width / 2.0 - win.width / 2.0;
-    let y = icon_pos.y + icon_size.height + 6.0;
+    // The tray rect spans the full menu bar height, so its bottom edge is the menu bar's edge.
+    let y = icon_pos.y + icon_size.height;
 
     if let Ok(Some(monitor)) = window.monitor_from_point(icon_pos.x, icon_pos.y) {
         let bounds = monitor.work_area();

@@ -118,9 +118,10 @@ h2 {
   margin: 0;
 }
 
-/* The popover: transparent margin leaves room for the shadow. */
+/* The popover: transparent margin on the sides and bottom leaves room for the shadow.
+   No top padding, so the card sits flush against the bottom of the menu bar. */
 .popover {
-  padding: 16px;
+  padding: 0 16px 16px;
 }
 .card {
   background: var(--bg);
