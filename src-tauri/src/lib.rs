@@ -2,7 +2,13 @@
 //! persistence, clipboard, global hotkey and launch-at-login.
 //! Everything UI-related lives in the web view; this file stays small on purpose.
 
-use std::{fs, io::Write, process::Command, sync::Mutex};
+use std::{
+    fs,
+    io::Write,
+    process::Command,
+    sync::Mutex,
+    time::{Duration, Instant},
+};
 
 use tauri::{
     AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, Runtime, WebviewWindow,
@@ -19,6 +25,20 @@ const STATE_FILE: &str = "state.json";
 /// Last known menu bar icon bounds, so the hotkey can open the popover in the same place.
 #[derive(Default)]
 struct TrayRect(Mutex<Option<tauri::Rect>>);
+
+/// When the popover was last hidden because it lost focus. Pressing the menu bar icon
+/// steals focus *before* the click event arrives, so without this the click would see a
+/// hidden window and immediately reopen it instead of closing it.
+#[derive(Default)]
+struct LastBlurHide(Mutex<Option<Instant>>);
+
+const BLUR_CLICK_GRACE: Duration = Duration::from_millis(300);
+
+fn hidden_by_blur_just_now<R: Runtime>(app: &AppHandle<R>) -> bool {
+    app.try_state::<LastBlurHide>()
+        .and_then(|s| *s.0.lock().unwrap())
+        .is_some_and(|t| t.elapsed() < BLUR_CLICK_GRACE)
+}
 
 // ---------------------------------------------------------------------------
 // Window
@@ -216,6 +236,7 @@ pub fn run() {
             quit
         ])
         .manage(TrayRect::default())
+        .manage(LastBlurHide::default())
         .setup(|app| {
             // Menu bar app: no Dock icon, no app switcher entry.
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -240,6 +261,10 @@ pub fn run() {
                         *app.state::<TrayRect>().0.lock().unwrap() = Some(rect);
                     }
                     if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+                        // The blur handler already closed it for this click; don't reopen.
+                        if hidden_by_blur_just_now(app) {
+                            return;
+                        }
                         toggle_window(app);
                     }
                 })
@@ -248,8 +273,12 @@ pub fn run() {
             // Popovers dismiss when they lose focus.
             if let Some(window) = main_window(app.handle()) {
                 let handle = window.clone();
+                let app_handle = app.handle().clone();
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::Focused(false) = event {
+                        if handle.is_visible().unwrap_or(false) {
+                            *app_handle.state::<LastBlurHide>().0.lock().unwrap() = Some(Instant::now());
+                        }
                         let _ = handle.hide();
                     }
                 });
