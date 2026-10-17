@@ -19,7 +19,8 @@
   --amber-text: #8a5a00;
   --night: #e3e5ea;
   --off: #f3f4f6;
-  --work: #e6f6ee;
+  --work: #dfe9fd;
+  --track: #f4f4f6;
   --shadow: 0 20px 50px rgba(17, 24, 39, 0.16), 0 2px 8px rgba(17, 24, 39, 0.08);
   --radius: 22px;
   --radius-sm: 12px;
@@ -46,7 +47,8 @@
     --amber-text: #f0c36a;
     --night: #15161a;
     --off: #2a2c31;
-    --work: #1f3a2d;
+    --work: #273a63;
+    --track: #2a2a2e;
     --shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
     color-scheme: dark;
   }
@@ -69,7 +71,8 @@
   --amber-text: #f0c36a;
   --night: #15161a;
   --off: #2a2c31;
-  --work: #1f3a2d;
+  --work: #273a63;
+  --track: #2a2a2e;
   --shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
@@ -252,8 +255,9 @@ h2 {
    Timeline
 --------------------------------------------------------------------------- */
 .timeline {
-  --who: 188px;
-  --when: 92px;
+  --who: 172px;
+  --when: 84px;
+  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -272,19 +276,17 @@ h2 {
   flex: 1;
   position: relative;
   color: var(--text-3);
-  font-size: 11.5px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 .axis__label {
   position: absolute;
-  top: 2px;
+  top: 3px;
   transform: translateX(-50%);
 }
 .timeline__body {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 .timeline__overlay {
   position: absolute;
@@ -296,52 +298,49 @@ h2 {
   flex: 1;
   position: relative;
   pointer-events: auto;
-  cursor: ew-resize;
-  margin-top: -6px;
 }
 .cursor {
   position: absolute;
   top: 0;
+  bottom: 6px;
+  width: 0;
+  pointer-events: none;
+}
+.cursor__line {
+  position: absolute;
+  top: 18px;
   bottom: 0;
   width: 2px;
-  margin-left: -1px;
-  background: var(--green);
+  transform: translateX(-50%);
+  background: var(--accent);
   border-radius: 2px;
-  pointer-events: none;
 }
 .cursor__badge {
   position: absolute;
-  top: -22px;
+  top: -3px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--green);
+  background: var(--accent);
   color: #fff;
-  font-size: 11.5px;
-  font-weight: 650;
-  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 1px 8px;
   border-radius: 999px;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 2px 6px rgba(48, 176, 110, 0.35);
-}
-.cursor--now {
-  background: var(--accent);
-}
-.cursor--now .cursor__badge {
-  background: var(--accent);
-  box-shadow: 0 2px 6px rgba(47, 123, 245, 0.35);
 }
 
 .row {
   display: flex;
   align-items: center;
-  height: 52px;
-  border-radius: 12px;
+  height: 44px;
 }
 .row.is-selected .row__name {
   color: var(--green-text);
 }
 .row__who {
+  position: relative;
   width: var(--who);
   flex: none;
   display: flex;
@@ -352,7 +351,10 @@ h2 {
 }
 .row__avatar {
   flex: none;
-  border-radius: 50%;
+  border-radius: 10px;
+}
+.row__avatar:hover {
+  opacity: 0.8;
 }
 .row__text {
   min-width: 0;
@@ -360,25 +362,30 @@ h2 {
 }
 .row__name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13.5px;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .row__meta {
   color: var(--text-3);
-  font-size: 12px;
+  font-size: 11.5px;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  gap: 6px;
 }
 .row__offset {
-  color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
 .row__edit {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg);
+  box-shadow: 0 0 0 4px var(--bg);
   opacity: 0;
   transition: opacity 0.12s;
 }
@@ -389,32 +396,25 @@ h2 {
 .track {
   flex: 1;
   position: relative;
-  height: 40px;
-  border-radius: 10px;
+  height: 30px;
+  border-radius: 9px;
   overflow: hidden;
-  background: var(--off);
-  border: 1px solid var(--border);
-}
-.track__seg {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-.track__seg--night {
-  background: var(--night);
-}
-.track__seg--off {
-  background: var(--off);
-}
-.track__seg--work {
-  background: var(--work);
+  background: var(--track);
 }
 .track__tick {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 1px;
-  background: var(--border);
+  background: var(--bg);
+  opacity: 0.7;
+}
+.track__work {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  border-radius: 6px;
+  background: var(--work);
 }
 .track__badges {
   position: absolute;
@@ -427,9 +427,9 @@ h2 {
 }
 .badge {
   pointer-events: auto;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
   background: var(--bg);
   color: var(--text-2);
@@ -458,16 +458,14 @@ h2 {
 }
 .row__clock {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 .row__day {
   color: var(--text-3);
-  font-size: 11.5px;
-}
-.row__day--shift {
-  color: var(--amber-text);
-  font-weight: 600;
+  font-size: 10.5px;
+  line-height: 1.2;
 }
 
 .empty {
@@ -478,7 +476,7 @@ h2 {
 }
 
 /* ---------------------------------------------------------------------------
-   Best times + copy bar
+   Best times
 --------------------------------------------------------------------------- */
 .besttimes {
   display: flex;
@@ -497,33 +495,6 @@ h2 {
   color: #f2b134;
   display: inline-flex;
 }
-.copybar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  border-left: 4px solid var(--green);
-}
-.copybar__info {
-  flex: 1;
-  min-width: 0;
-}
-.copybar__title {
-  font-weight: 650;
-  font-size: 14px;
-}
-.copybar__sub {
-  color: var(--text-3);
-  font-size: 12px;
-  margin-top: 2px;
-}
-.copybar__actions {
-  display: flex;
-  gap: 8px;
-}
-
 /* ---------------------------------------------------------------------------
    Controls
 --------------------------------------------------------------------------- */
@@ -627,7 +598,7 @@ h2 {
 
 .avatar {
   position: relative;
-  border-radius: 50%;
+  border-radius: 30%;
   color: #fff;
   font-weight: 650;
   display: grid;
@@ -639,7 +610,7 @@ h2 {
 .avatar img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 30%;
   object-fit: cover;
   display: block;
 }

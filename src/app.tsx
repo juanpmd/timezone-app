@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BestTimes } from "./components/best-times";
-import { CopyBar } from "./components/copy-bar";
 import { DayHeader } from "./components/day-header";
 import { PersonEditor } from "./components/person-editor";
 import { SearchBar } from "./components/search-bar";
@@ -22,13 +21,15 @@ export default function App() {
   const zone = localTimeZone();
 
   const [view, setView] = useState<View>({ kind: "timeline" });
-  const [cursor, setCursor] = useState<Date | null>(null); // null → follows "now"
+  const [cursor, setCursor] = useState<Date | null>(null); // pinned by click or keyboard; null → follows "now"
+  const [hovered, setHovered] = useState<Date | null>(null); // pointer over the grid
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [focusSignal, setFocusSignal] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const effectiveCursor = cursor ?? now;
+  const effectiveCursor = hovered ?? cursor ?? now;
+  const following = cursor === null && hovered === null;
   const dayStart = useMemo(() => startOfDay(effectiveCursor, zone), [effectiveCursor, zone]);
   const dayEnd = useMemo(() => addDays(dayStart, 1, zone), [dayStart, zone]);
 
@@ -76,6 +77,7 @@ export default function App() {
     () =>
       onPopoverShown(() => {
         setCursor(null);
+        setHovered(null);
         setView({ kind: "timeline" });
         setFocusSignal((n) => n + 1);
       }),
@@ -103,6 +105,9 @@ export default function App() {
     setView({ kind: "edit", isNew: true, person: newPerson({ city: city.city, country: city.country, timeZone: city.timeZone, groupIds: activeGroup ? [activeGroup] : [] }) });
 
   const shiftDay = (days: number) => setCursor(new Date(effectiveCursor.getTime() + (addDays(dayStart, days, zone).getTime() - dayStart.getTime())));
+
+  // Clicking the pinned time again unpins it.
+  const pick = (at: Date) => setCursor((prev) => (prev?.getTime() === at.getTime() ? null : at));
 
   const toggleSelect = (id: string) =>
     setSelected((s) => {
@@ -134,14 +139,13 @@ export default function App() {
           <>
             <SearchBar now={now} hour12={settings.hour12} onPick={addFromCity} onOpenSettings={() => setView({ kind: "settings" })} focusSignal={focusSignal} />
             <div className="card__body">
-              <DayHeader dayStart={dayStart} now={now} following={cursor === null} groups={groups} activeGroup={activeGroup} onGroup={setActiveGroup} onShift={shiftDay} onNow={() => setCursor(null)} />
+              <DayHeader dayStart={dayStart} now={now} following={following} groups={groups} activeGroup={activeGroup} onGroup={setActiveGroup} onShift={shiftDay} onNow={() => setCursor(null)} />
               {visible.length === 0 ? (
                 <p className="empty">{people.length === 0 ? "Search for a city above to add your first person." : "Nobody in this group yet."}</p>
               ) : (
                 <>
-                  <Timeline people={visible} dayStart={dayStart} dayEnd={dayEnd} cursor={effectiveCursor} following={cursor === null} hour12={settings.hour12} selected={selected} onCursor={setCursor} onToggleSelect={toggleSelect} onEdit={(person) => setView({ kind: "edit", person, isNew: false })} />
+                  <Timeline people={visible} dayStart={dayStart} dayEnd={dayEnd} cursor={effectiveCursor} hour12={settings.hour12} selected={selected} onHover={setHovered} onPick={pick} onToggleSelect={toggleSelect} onEdit={(person) => setView({ kind: "edit", person, isNew: false })} />
                   <BestTimes slots={slots} total={bestFor.length} scoped={scoped.length > 0} cursor={effectiveCursor} hour12={settings.hour12} onPick={setCursor} />
-                  <CopyBar people={visible} cursor={effectiveCursor} hour12={settings.hour12} />
                 </>
               )}
             </div>
