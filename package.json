@@ -7,11 +7,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "cities": "bun scripts/build-cities.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",
-    "@tauri-apps/plugin-opener": "^2.7.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

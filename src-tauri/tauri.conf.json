@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "timezone",
+  "productName": "Timezone",
   "version": "0.1.0",
   "identifier": "com.juanpmd.timezone",
   "build": {
@@ -10,11 +10,21 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
-        "title": "timezone",
-        "width": 800,
-        "height": 600
+        "label": "main",
+        "title": "Timezone",
+        "width": 720,
+        "height": 520,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "acceptFirstMouse": true
       }
     ],
     "security": {
